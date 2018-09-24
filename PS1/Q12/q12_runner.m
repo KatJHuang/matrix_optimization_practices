@@ -36,6 +36,14 @@ l_inf_norm = max(abs(A - x));
 [min_dist, pos] = min(l_inf_norm);
 plot(A(1, pos), A(2, pos), 'bo', 'MarkerSize', 5);
 square(x(1, :), x(2, :), l_inf_norm(pos))
+%% Linear Programming
+%%
+norms = [1 2 inf];
+for ii = 1:size(norms, 2)
+    fprintf('L-%d norm\n', norms(ii));
+    [y, r] = proj_cvx (x, v0 , v, norms(ii));
+    y
+end
 %%
 function circle(x, y, r)
 % x and y are the coordinates of the center of the circle
@@ -64,4 +72,16 @@ function square(x, y, r)
     side_length = 2 * r;
     rectangle('Position', ...
         [x - side_length/2, y - side_length/2, side_length, side_length]);
+end
+
+function [y, r] = proj_cvx (x, v0 , v, nrm)%% x, v0 and v must be column vectors
+    objtv = @(y) norm (x-y, nrm); %% objective is L_2 norm
+    cvx_begin
+        variable y(2) %% 2-d variable we are optimizing over
+        variable t(1) %% real valued parameter that defines
+        minimize ( objtv (y)) %% defining the objective
+        subject to
+        v0 + t*v == y %% the projection y must be in set A
+    cvx_end
+    r = objtv (y); %% minimum value of the objective
 end
