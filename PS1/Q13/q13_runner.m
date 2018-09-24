@@ -46,5 +46,33 @@ taylor_approx = vec_to_approx - vec_to_approx .^ 3 / factorial(3)...
     + vec_to_approx .^ 5 / factorial(5);
 
 figure;hold on
-plot(base, reconstructed);
-plot(base, taylor_approx, 'r--')
+plot(base, reconstructed); label1 = 'orthonormal bases';
+plot(base, taylor_approx, 'r--'); label2 = 'Taylor Approx';
+%%
+function [inner_prod] = func_inner_prod(f, g, dx)
+%FUNC_INNER_PROD approximates the inner product between two functions
+    inner_prod = (f' * g) * dx;
+end
+
+function [U] = gram_schmidt(V, dx)
+% The vectors v1, ..., vk (columns of matrix V, so that V(:,j) is the jth 
+% vector) are replaced by orthonormal vectors (columns of U) which span the
+% same subspace
+    n = size(V,1); % dimension of each vector
+    k = size(V,2); % number of vectors
+    
+    U = zeros(n,k);
+    
+    % normalize the first vector
+    U(:,1) = V(:,1)/sqrt(func_inner_prod(V(:,1), V(:,1), dx)); 
+    for i = 2:k
+      U(:,i) = V(:,i);
+      for j = 1:i-1
+        U(:,i) = U(:,i) - func_inner_prod(U(:,i), U(:,j), dx)...
+            / func_inner_prod(U(:,j), U(:,j), dx)...
+            * U(:,j);      
+      end
+      % normalize after projection onto other bases
+      U(:,i) = U(:,i)/sqrt(func_inner_prod(U(:,i), U(:,i), dx)); 
+    end
+end
